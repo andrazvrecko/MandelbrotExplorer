@@ -18,16 +18,16 @@
     <ClInclude Include="Screen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MandelbrotExplorer.h">
+    <ClInclude Include="MandelbrotExplorerCuda.cuh">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp">
+    <CudaCompile Include="MandelbrotExplorerCuda.cu">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MandelbrotExplorer.cpp">
+    </CudaCompile>
+    <CudaCompile Include="Main.cu">
       <Filter>Source Files</Filter>
-    </ClCompile>
+    </CudaCompile>
   </ItemGroup>
 </Project>

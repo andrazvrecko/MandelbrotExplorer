@@ -4,7 +4,7 @@
 #include <vector>
 #include <math.h>
 #include <thread>
-#include <immintrin.h>
+#include <cuda_runtime.h>
 
 class MandelbrotExplorer : public olc::PixelGameEngine
 {
@@ -16,9 +16,8 @@ public:
 	bool OnUserDestroy() override;
 	bool OnUserUpdate(float fElapsedTime) override;
 
-	void simpleFractal(const olc::vi2d &t_pixTopLeft, const olc::vi2d &t_pixBotRight, const olc::vd2d &t_fracTopLeft, const olc::vd2d &t_fracBotRight, const int &iterations);
+	void simpleFractal(const olc::vi2d& t_pixTopLeft, const olc::vi2d& t_pixBotRight, const olc::vd2d& t_fracTopLeft, const olc::vd2d& t_fracBotRight, const int& iterations);
 	void fractalWithThreads(const olc::vi2d& t_pixTopLeft, const olc::vi2d& t_pixBotRight, const olc::vd2d& t_fracTopLeft, const olc::vd2d& t_fracBotRight, const int& iterations);
-
 
 	void WorldToScreen(const olc::vd2d& v, olc::vi2d& n)
 	{
@@ -36,7 +35,7 @@ private:
 	olc::vd2d vOffset = { 0.0, 0.0 };
 	olc::vd2d vStartPan = { 0.0, 0.0 };
 	olc::vd2d vScale = { 1280.0 / 2.0, 720.0 };
-	int* m_pFractal = nullptr;
+	int* m_pFractal;
 	std::vector<std::vector<int>>* m_pVector;
 	int m_Mode = 0;
 	int m_Iterations = 64;

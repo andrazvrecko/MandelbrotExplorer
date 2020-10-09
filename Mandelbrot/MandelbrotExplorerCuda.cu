@@ -1,11 +1,45 @@
-#include "MandelbrotExplorer.h"
+#include "MandelbrotExplorerCuda.cuh"
+
+__global__
+void cudaSimpleFractal(int tlX, int tlY, int brX, int brY, double f_tlX, double f_tlY, double f_brX, double f_brY, int iterations, int array[][720])
+{
+	double x0 = (f_brX - f_tlX) / (double(brX) - double(tlX));
+	double y0 = (f_brY - f_tlY) / (double(brY) - double(brX));
+	double coordX = f_tlX, coordY = f_tlY;
+	double x = 0, y = 0, cIteration = 0, xtemp;
+
+	for (int i = tlX; i < brX; i++) {
+		coordY = f_tlY;
+		for (int j = tlY; j < brY; j++) {
+			x = 0;
+			y = 0;
+			cIteration = 0;
+			while (x * x + y * y <= 4 && cIteration < iterations)
+			{
+				xtemp = x * x - y * y + coordX;
+				y = 2 * x * y + coordY;
+				x = xtemp;
+				cIteration += 1;
+			}
+			array[i][j] = cIteration;
+			coordY += y0;
+		}
+		coordX += x0;
+	}
+}
 
 bool MandelbrotExplorer::OnUserCreate()
 {
-	m_pFractal = new int[ScreenWidth() * ScreenHeight()]{ 0 };
-	
-	m_pVector = new std::vector<std::vector<int> >(ScreenWidth(), std::vector<int>(ScreenHeight()));
-	
+	int A_vals[1280][720];
+	for (int i = 0; i < 1280; i++) {
+		for (int j = 0; j < 720; j++) {
+			A_vals[i][j] = 0;
+		}
+	}
+	//cudaMallocManaged(&m_pFractal, 1280*720*sizeof(int));
+		
+	m_pVector = new std::vector<std::vector<int>> (ScreenWidth(), std::vector<int>(ScreenHeight()));
+
 	for (int i = 0; i < ScreenWidth(); i++) {
 		for (int j = 0; j < ScreenHeight(); j++) {
 			m_pVector->at(i).at(j) = 0;
@@ -16,6 +50,7 @@ bool MandelbrotExplorer::OnUserCreate()
 
 bool MandelbrotExplorer::OnUserDestroy()
 {
+	cudaFree(m_pFractal);
 	return true;
 }
 
@@ -42,6 +77,7 @@ bool MandelbrotExplorer::OnUserUpdate(float fElapsedTime)
 	if (GetKey(olc::Key::K).bPressed) m_bDebug = !m_bDebug;
 	if (GetKey(olc::Key::K0).bPressed) m_Mode = 0;
 	if (GetKey(olc::Key::K1).bPressed) m_Mode = 1;
+	if (GetKey(olc::Key::K2).bPressed) m_Mode = 2;
 	if (GetKey(olc::UP).bPressed) m_Iterations += 64;
 	if (GetKey(olc::DOWN).bPressed) m_Iterations -= 64;
 	if (m_Iterations < 64) m_Iterations = 64;
@@ -60,13 +96,29 @@ bool MandelbrotExplorer::OnUserUpdate(float fElapsedTime)
 
 	//Start timer
 	auto tp1 = std::chrono::high_resolution_clock::now();
-	
+
 	switch (m_Mode) {
-	case 0: 
+	case 0:
 		simpleFractal(c_pixTopLeft, c_pixBotRight, c_fracTopLeft, c_fracBotRight, m_Iterations);
 		break;
 	case 1:
 		fractalWithThreads(c_pixTopLeft, c_pixBotRight, c_fracTopLeft, c_fracBotRight, m_Iterations);
+		break;
+	case 2:
+
+		int tlX, tlY, brX, brY;
+		double f_tlX, f_tlY, f_brX, f_brY;
+		tlX = c_pixTopLeft.x;
+		tlY = c_pixTopLeft.y;
+		brX = c_pixBotRight.x;
+		brY = c_pixBotRight.y;
+		f_tlX = c_fracTopLeft.x;
+		f_tlY = c_fracTopLeft.y;
+		f_brX = c_fracBotRight.x;
+		f_brY = c_fracBotRight.y;
+
+		cudaSimpleFractal<<<1,1>>>(tlX, tlY, brX, brY, f_tlX, f_tlY, f_brX, f_brY, m_Iterations, reinterpret_cast<int (*)[720]>(m_pFractal));
+		cudaDeviceSynchronize();
 		break;
 	}
 	//simpleFractal(c_pixTopLeft, c_pixBotRight, c_fracTopLeft, c_fracBotRight, m_Iterations);
@@ -78,7 +130,13 @@ bool MandelbrotExplorer::OnUserUpdate(float fElapsedTime)
 		for (int y = 0; y < ScreenHeight(); y++)
 		{
 			float a = 0.1f;
-			float n = m_pVector->at(x).at(y);
+			float n;
+			if (m_Mode != 2) {
+				n = m_pVector->at(x).at(y);
+			}
+			else {
+				//n = m_pFractal[x][y];
+			}
 			//Draw(x, y, olc::PixelF(122, 122, 122));
 			Draw(x, y, olc::PixelF(0.5f * sin(a * n) + 0.5f, 0.5f * sin(a * n + 2.094f) + 0.5f, 0.5f * sin(a * n + 4.188f) + 0.5f));
 		}
@@ -106,14 +164,14 @@ void MandelbrotExplorer::simpleFractal(const olc::vi2d& t_pixTopLeft, const olc:
 	double y0 = (t_fracBotRight.y - t_fracTopLeft.y) / (double(t_pixBotRight.y) - double(t_pixTopLeft.y));
 	double coordX = t_fracTopLeft.x, coordY = t_fracTopLeft.y;
 	double x = 0, y = 0, cIteration = 0, xtemp;
-	
+
 	for (int i = t_pixTopLeft.x; i < t_pixBotRight.x; i++) {
 		coordY = t_fracTopLeft.y;
 		for (int j = t_pixTopLeft.y; j < t_pixBotRight.y; j++) {
 			x = 0;
 			y = 0;
 			cIteration = 0;
-			while (x*x + y*y <= 4 && cIteration < iterations)
+			while (x * x + y * y <= 4 && cIteration < iterations)
 			{
 				xtemp = x * x - y * y + coordX;
 				y = 2 * x * y + coordY;
@@ -134,7 +192,7 @@ void MandelbrotExplorer::fractalWithThreads(const olc::vi2d& t_pixTopLeft, const
 	std::thread threads[maxThreads];
 	int widthFactor = (t_pixBotRight.x - t_pixTopLeft.x) / maxThreads;
 	double fracWidthFactor = (t_fracBotRight.x - t_fracTopLeft.x) / double(maxThreads);
-	
+
 	for (int i = 0; i < maxThreads; i++) {
 		threads[i] = std::thread(&MandelbrotExplorer::simpleFractal, this,
 			olc::vi2d(t_pixTopLeft.x + widthFactor * (i), t_pixTopLeft.y),
@@ -149,3 +207,6 @@ void MandelbrotExplorer::fractalWithThreads(const olc::vi2d& t_pixTopLeft, const
 	}
 
 }
+
+
+

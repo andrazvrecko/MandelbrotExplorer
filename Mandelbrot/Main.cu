@@ -1,5 +1,5 @@
 #define OLC_PGE_APPLICATION
-#include "MandelbrotExplorer.h"
+#include "MandelbrotExplorerCuda.cuh"
 
 int main()
 {
@@ -7,4 +7,4 @@ int main()
 	if (demo.Construct(1280, 720, 1, 1, false, false))
 		demo.Start();
 	return 0;
-} 
+}
