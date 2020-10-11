@@ -1,11 +1,25 @@
 # MandelbrotExplorer
 
----WIP---
+Explore Mandelbrot and Jula sets.
 
-Mandelbrot Explorer. 
+Mandelbrot explorer features 3 modes: Simple, Threaded and Cuda.
 
-Simple algorithm implemented in C++.
-Same algorithm implemented using CUDA cores for faster calculation.
+Keys:
+  Zoom:
+    -Q : Zoom in
+    -A : Zoom out
+  Debug:
+    -K : Draw debug overlay
+  Modes: 
+    -M : Mandelbrot
+    -J : Julia
+   Colors:
+    -7 : Normal
+    -8 : Black/White
+   Iterations:
+    -UpArrow : increase by 64
+    -DownArrow : decrease by 64
+
 
 
 
