@@ -5,22 +5,39 @@ Explore Mandelbrot and Jula sets.
 Mandelbrot explorer features 3 modes: Simple, Threaded and Cuda.
 
 Keys:
+
   Zoom:
+    
     -Q : Zoom in
+    
     -A : Zoom out
+  
   Debug:
+  
     -K : Draw debug overlay
+  
   Modes: 
+    
     -M : Mandelbrot
+    
     -J : Julia
+   
    Colors:
+    
     -7 : Normal
+    
     -8 : Black/White
+   
    Iterations:
+    
     -UpArrow : increase by 64
+    
     -DownArrow : decrease by 64
 
 
+TODO:
+
+-code optimization
 
 
 Inspired by https://www.youtube.com/watch?v=PBvLs88hvJ8.
