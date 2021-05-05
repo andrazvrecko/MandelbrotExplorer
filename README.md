@@ -4,6 +4,8 @@ Explore Mandelbrot and Jula sets.
 
 Mandelbrot explorer features 3 modes: Simple, Threaded and Cuda.
 
+Requires CUDA Developer Kit
+
 Keys:
 
   Zoom:
@@ -35,9 +37,7 @@ Keys:
     -DownArrow : decrease by 64
 
 
-TODO:
 
--code optimization
 
 
 Inspired by https://www.youtube.com/watch?v=PBvLs88hvJ8.
